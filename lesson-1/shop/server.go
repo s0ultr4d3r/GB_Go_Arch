@@ -2,12 +2,14 @@ package main
 
 import (
 	"encoding/json"
-	"net/http"
-	"strconv"
-
 	"gb-go-architecture/lesson-1/shop_new/models"
 	"gb-go-architecture/lesson-1/shop_new/repository"
 
+	//	"models/repository"
+	"net/http"
+	"strconv"
+
+	//"./repository"
 	"github.com/gorilla/mux"
 )
 

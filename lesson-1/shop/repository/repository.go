@@ -2,11 +2,10 @@ package repository
 
 import (
 	"errors"
+	"gb-go-architecture/lesson-1/shop/models"
 	"sort"
 	"sync"
 	"time"
-
-	"gb-go-architecture/lesson-1/shop_new/models"
 )
 
 var (

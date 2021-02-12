@@ -1,8 +1,9 @@
 package main
 
 import (
-	"gb-go-architecture/lesson-1/shop_new/repository"
+	"gb-go-architecture/lesson-1/shop/repository"
 	"log"
+
 	"net/http"
 
 	"github.com/gorilla/mux"
