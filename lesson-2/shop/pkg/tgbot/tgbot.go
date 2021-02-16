@@ -1,10 +1,11 @@
 package tgbot
 
 import (
+	"GB/lesson-1/shop/models"
 	"errors"
 	"fmt"
 	"net/http"
-	"shop/models"
+
 	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
@@ -38,7 +39,7 @@ func NewTelegramAPI(token string, chatID int64) (*telegramAPI, error) {
 }
 
 func (s *telegramAPI) SendOrderNotification(order *models.Order) error {
-	text := fmt.Sprintf("new order %d\nemail: %s\nphone: %s", order.ID, order.Email, order.Phone)
+	text := fmt.Sprintf("new order %d\nemail: %s\nphone: %s", order.ID, order.Email, order.CustomerPhone)
 
 	msg := tgbotapi.NewMessage(s.chatId, text)
 

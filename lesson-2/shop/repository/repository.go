@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"shop/models"
+	"GB/lesson-1/shop/models"
 )
 
 var (
@@ -34,13 +34,13 @@ type ordersTable struct {
 	orders map[int32]*models.Order
 	maxID  int32
 }
-
 type itemsTable struct {
 	items map[int32]*models.Item
 	maxID int32
 }
 
 func NewMapDB() Repository {
+
 	return &mapDB{
 		mu: &sync.RWMutex{},
 		itemsTable: &itemsTable{
@@ -66,15 +66,8 @@ func NewMapDB() Repository {
 					CreatedAt: time.Now(),
 					UpdatedAt: time.Now(),
 				},
-				4: &models.Item{
-					ID:        4,
-					Name:      "item4",
-					Price:     80,
-					CreatedAt: time.Now(),
-					UpdatedAt: time.Now(),
-				},
 			},
-			maxID: 4,
+			maxID: 3,
 		},
 		ordersTable: &ordersTable{
 			orders: make(map[int32]*models.Order),
@@ -173,28 +166,23 @@ func (m *mapDB) ListItems(filter *ItemFilter) ([]*models.Item, error) {
 		itemSlice = append(itemSlice, item)
 	}
 	m.mu.RUnlock()
+
 	sort.Slice(itemSlice, func(i, j int) bool {
 		return itemSlice[i].ID < itemSlice[j].ID
 	})
 
-	if filter.PriceLeft == nil && filter.PriceRight == nil {
-		res = itemSlice
-	} else {
-		for _, item := range itemSlice {
-			switch {
-			case filter.PriceLeft != nil && filter.PriceRight == nil:
-				if item.Price >= *filter.PriceLeft {
-					res = append(res, item)
-				}
-			case filter.PriceRight != nil && filter.PriceLeft == nil:
-				if item.Price <= *filter.PriceRight {
-					res = append(res, item)
-				}
-			case filter.PriceRight != nil && filter.PriceRight != nil:
-				if item.Price <= *filter.PriceRight && item.Price >= *filter.PriceLeft {
-					res = append(res, item)
-				}
-			}
+Loop:
+	for _, item := range itemSlice {
+		switch {
+		case filter.PriceLeft == nil && filter.PriceRight == nil:
+			res = itemSlice
+			break Loop
+		case filter.PriceLeft != nil && filter.PriceRight == nil && item.Price >= *filter.PriceLeft:
+			res = append(res, item)
+		case filter.PriceLeft == nil && filter.PriceRight != nil && item.Price <= *filter.PriceRight:
+			res = append(res, item)
+		case filter.PriceLeft != nil && filter.PriceRight != nil && item.Price >= *filter.PriceLeft && item.Price <= *filter.PriceRight:
+			res = append(res, item)
 		}
 	}
 
@@ -212,12 +200,10 @@ func (m *mapDB) ListItems(filter *ItemFilter) ([]*models.Item, error) {
 }
 
 func (m *mapDB) GetItem(ID int32) (*models.Item, error) {
-	m.mu.RLock()
 	item, ok := m.itemsTable.items[ID]
 	if !ok {
 		return nil, ErrNotFound
 	}
-	m.mu.RUnlock()
 
 	return &models.Item{
 		ID:        item.ID,

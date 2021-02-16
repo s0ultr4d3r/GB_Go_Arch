@@ -4,9 +4,9 @@ import (
 	"errors"
 	"log"
 
-	"shop/models"
-	tg "shop/pkg/tgbot"
-	rep "shop/repository"
+	"GB/lesson-1/shop/models"
+	tg "GB/lesson-1/shop/pkg/tgbot"
+	rep "GB/lesson-1/shop/repository"
 )
 
 type Service interface {
@@ -19,11 +19,15 @@ type service struct {
 	db rep.Repository
 }
 
+var (
+	ErrItemNotExists = errors.New("item not exists")
+)
+
 func (s *service) CreateOrder(order *models.Order) (*models.Order, error) {
 	for _, itemID := range order.ItemIDs {
 		_, err := s.db.GetItem(int32(itemID))
 		if err != nil {
-			return nil, errors.New("item not found")
+			return nil, ErrItemNotExists
 		}
 	}
 
@@ -48,9 +52,8 @@ func (s *service) CreateItem(item *models.Item) (*models.Item, error) {
 	return s.db.CreateItem(item)
 }
 
-func NewService(tg tg.TelegramAPI, db rep.Repository) Service {
+func NewService(rep rep.Repository) Service {
 	return &service{
-		db: db,
-		tg: tg,
+		db: rep,
 	}
 }
