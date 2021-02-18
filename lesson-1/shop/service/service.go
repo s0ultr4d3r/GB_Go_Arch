@@ -5,18 +5,17 @@ import (
 	"log"
 
 	"GB/lesson-1/shop/models"
-	tg "GB/lesson-1/shop/pkg/tgbot"
+	"GB/lesson-1/shop/pkg/notification"
 	rep "GB/lesson-1/shop/repository"
 )
 
 type Service interface {
-	CreateItem(item *models.Item) (*models.Item, error)
 	CreateOrder(order *models.Order) (*models.Order, error)
 }
 
 type service struct {
-	tg tg.TelegramAPI
-	db rep.Repository
+	notif notification.Notification
+	rep   rep.Repository
 }
 
 var (
@@ -25,19 +24,20 @@ var (
 
 func (s *service) CreateOrder(order *models.Order) (*models.Order, error) {
 	for _, itemID := range order.ItemIDs {
-		_, err := s.db.GetItem(int32(itemID))
+		_, err := s.rep.GetItem(int32(itemID))
 		if err != nil {
 			return nil, ErrItemNotExists
 		}
 	}
 
-	order, err := s.db.CreateOrder(order)
+	order, err := s.rep.CreateOrder(order)
 	if err != nil {
 		return nil, err
 	}
-	if err := s.tg.SendOrderNotification(order); err != nil {
+	if err := s.notif.SendOrderCreated(order); err != nil {
 		log.Println(err)
 	}
+
 	return order, err
 }
 
@@ -49,11 +49,11 @@ func (s *service) CreateItem(item *models.Item) (*models.Item, error) {
 		return nil, errors.New("item price should be positive")
 	}
 
-	return s.db.CreateItem(item)
+	return s.rep.CreateItem(item)
 }
 
-func NewService(rep rep.Repository) Service {
+func NewService(rep rep.Repository, notif notification.Notification) Service {
 	return &service{
-		db: rep,
+		rep: rep,
 	}
 }

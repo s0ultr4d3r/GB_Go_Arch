@@ -2,19 +2,83 @@ package main
 
 import (
 	"encoding/json"
-	"gb-go-architecture/lesson-1/shop_new/models"
-	"gb-go-architecture/lesson-1/shop_new/repository"
-
-	//	"models/repository"
+	"log"
 	"net/http"
 	"strconv"
 
-	//"./repository"
+	"GB/lesson-1/shop/models"
+	"GB/lesson-1/shop/repository"
+	"GB/lesson-1/shop/service"
+
 	"github.com/gorilla/mux"
 )
 
 type server struct {
-	rep repository.Repository
+	rep     repository.Repository
+	service service.Service
+}
+
+func (s *server) createOrderHandler(w http.ResponseWriter, r *http.Request) {
+	order := new(models.Order)
+	err := json.NewDecoder(r.Body).Decode(order)
+	if err != nil {
+		log.Println(err)
+		json.NewEncoder(w).Encode(map[string]bool{"ok": false})
+		return
+	}
+
+	order, err = s.service.CreateOrder(order)
+	if err != nil {
+		log.Println(err)
+		json.NewEncoder(w).Encode(map[string]bool{"ok": false})
+		return
+	}
+	json.NewEncoder(w).Encode(map[string]bool{"ok": true})
+}
+
+func (s *server) parseOrderFilterQuery(r *http.Request) *repository.OrderFilter {
+	filter := &repository.OrderFilter{}
+
+	if limitRaw := r.FormValue("limit"); limitRaw != "" {
+		if limitInput, err := strconv.Atoi(limitRaw); err == nil {
+			filter.Limit = limitInput
+		}
+	}
+	if filter.Limit == 0 {
+		filter.Limit = 5
+	}
+
+	if offsetRaw := r.FormValue("offset"); offsetRaw != "" {
+		if offsetInput, err := strconv.Atoi(offsetRaw); err == nil {
+			filter.Offset = offsetInput
+		}
+	}
+
+	return filter
+}
+
+func (s *server) listOrdersHandler(w http.ResponseWriter, r *http.Request) {
+	filter := s.parseOrderFilterQuery(r)
+
+	orders, err := s.rep.ListOrders(filter)
+	if err != nil && err != repository.ErrNotFound {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	if err == repository.ErrNotFound {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	resp := &ListResponse{
+		Payload: orders,
+		Limit:   filter.Limit,
+		Offset:  filter.Offset,
+	}
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 }
 
 func (s *server) createItemHandler(w http.ResponseWriter, r *http.Request) {
@@ -132,10 +196,10 @@ func (s *server) parseItemFilterQuery(r *http.Request) *repository.ItemFilter {
 	return filter
 }
 
-type ListItemResponse struct {
-	Payload []*models.Item `json:"payload"`
-	Limit   int            `json:"limit"`
-	Offset  int            `json:"offset"`
+type ListResponse struct {
+	Payload interface{} `json:"payload"`
+	Limit   int         `json:"limit"`
+	Offset  int         `json:"offset"`
 }
 
 func (s *server) listItemHandler(w http.ResponseWriter, r *http.Request) {
@@ -151,7 +215,7 @@ func (s *server) listItemHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp := &ListItemResponse{
+	resp := &ListResponse{
 		Payload: items,
 		Limit:   filter.Limit,
 		Offset:  filter.Offset,
