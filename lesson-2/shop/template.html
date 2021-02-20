@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head><meta charset="UTF-8" />
+    <title>{{ .title }}</title>
+</head>
+<body>
+    {{ range $index, $value := .items }}
+    
+        <div class="title">{{ .Name }}</div>
+        <div class="price">{{ .Price }}</div>
+    </div>
+    {{ end }}
+</body>
+</html>

@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head><meta charset="UTF-8" />
+    <title>{{ .title }}</title>
+</head>
+<body>
+    {{ range $index, $value := .todos }}
+    <div class="item{{ if eq .Done true }} done {{end}}">
+        <div class="title">{{ .Name }}</div>
+    </div>
+    {{ end }}
+</body>
+</html>

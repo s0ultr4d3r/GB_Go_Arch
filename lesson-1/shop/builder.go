@@ -1,10 +1,10 @@
 package main
 
-import (
-	"GB/Lesson-2/shop/notification"
-	"GB/Lesson-2/shop/repository"
-	"GB/Lesson-2/shop/service"
-)
+import{
+	"GB/shop/Lesson-1/notification"
+	"GB/shop/Lesson-1/repository"
+	"GB/shop/Lesson-1/service"
+}
 
 constructors []func(interface)
 
