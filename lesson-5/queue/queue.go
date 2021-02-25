@@ -1,28 +1,28 @@
 package queue
 
+import "GB/lesson-5/linkedlist"
+
 type Queue struct {
-	sli []int
+	list *linkedlist.List
 }
 
 func NewQueue(cap int) *Queue {
 	return &Queue{
-		sli: make([]int, 0, cap),
+		list: &linkedlist.List{},
 	}
 }
 func (s *Queue) Push(elem int) {
-	s.sli = append(s.sli, elem)
+	node := &linkedlist.Node{
+		Data: elem,
+	}
+	s.list.Append(node)
 }
 func (s *Queue) Pop() (int, bool) {
-	if len(s.sli) == 0 {
+	if s.list.Len() == 0 {
 		return 0, false
 	}
-	elem := s.sli[0]
-
-	if len(s.sli) == 1 {
-		s.sli = nil
-		return elem, true
-	}
-
-	s.sli = s.sli[1:]
+	elem := s.list.Head().Data
+	s.list.Delete(s.list.Head())
 	return elem, true
+
 }
