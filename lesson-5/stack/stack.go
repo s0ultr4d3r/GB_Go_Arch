@@ -1,22 +1,28 @@
 package stack
 
+import (
+	"GB/lesson-5/doublelinkedlist"
+	"fmt"
+)
+
 type Stack struct {
-	sli []int
+	sli *doublelinkedlist.List
 }
 
 func NewStack(cap int) *Stack {
 	return &Stack{
-		sli: make([]int, 0, cap),
+		sli: doublelinkedlist.New(),
 	}
 }
 func (s *Stack) Push(elem int) {
-	s.sli = append(s.sli, elem)
+	s.sli.PushBack(elem)
 }
-func (s *Stack) Pop() (int, bool) {
-	if len(s.sli) == 0 {
+func (s *Stack) Pop() (interface{}, bool) {
+	if s.sli.Len() == 0 {
 		return 0, false
 	}
-	elem := s.sli[len(s.sli)-1]
-	s.sli = s.sli[:len(s.sli)-1]
-	return elem, true
+	e := s.sli.Back()
+	fmt.Print(e.Value)
+	s.sli.Remove(e)
+	return e.Value, true
 }
